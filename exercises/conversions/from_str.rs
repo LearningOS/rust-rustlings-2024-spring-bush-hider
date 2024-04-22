@@ -31,7 +31,7 @@ enum ParsePersonError {
     ParseInt(ParseIntError),
 }
 
-// I AM NOT DONE
+
 
 // Steps:
 // 1. If the length of the provided string is 0, an error should be returned
@@ -52,8 +52,60 @@ enum ParsePersonError {
 impl FromStr for Person {
     type Err = ParsePersonError;
     fn from_str(s: &str) -> Result<Person, Self::Err> {
+        // 1. If the length of the provided string is 0
+        if s.is_empty() {
+            return Err(ParsePersonError::Empty);
+        }
+        // 2. Split the given string on the commas present in it.
+        let mut iter = s.split(',');
+        // 3. Extract the first element from the split operation and use it as the name.
+        // 4. If the name is empty, then return the default of Person.
+        let mut name: String;
+        let mut age: usize;
+        if let Some(name_str) = iter.next() {
+            if name_str.is_empty(){
+                return Err(ParsePersonError::NoName)
+            } else {
+                name = name_str.to_string();
+            }
+        } else {
+            return Err(ParsePersonError::BadLen);
+        }
+
+        // 5. Extract the other element from the split operation and parse it into a
+        //    `usize` as the age.
+        if let Some(age_str) = iter.next() {
+            age = match age_str.parse::<usize>() {
+                Ok(age_) => age_,
+                Err(e) => return Err(ParsePersonError::ParseInt(e)),
+            };
+        } else {
+            return Err(ParsePersonError::BadLen);
+        }
+        
+
+        // 6. more than 2 elements after split
+        if let Some(x) = iter.next() {
+            return Err(ParsePersonError::BadLen);
+        }
+        Ok( Person { name, age })
+
     }
 }
+
+/*
+* Other methods to convert Err()
+* method1: use map_err # convert std::num::ParseIntError -> ParsePersonError::ParseInt <显式>
+let age = age_str.parse::<usize>().map_err(ParsePersonError::ParseInt)?;
+
+* method2: impl `From<ParseIntError>`  for `ParsePersonError` <隐式>
+impl From<ParseIntError>  for ParsePersonError{
+    fn from(err:ParseIntError) -> ParsePersonError{
+        ParsePersonError::ParseInt(err)
+    }
+}
+*
+*/
 
 fn main() {
     let p = "Mark,20".parse::<Person>().unwrap();
