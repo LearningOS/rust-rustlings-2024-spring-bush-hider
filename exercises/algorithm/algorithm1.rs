@@ -2,7 +2,7 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -29,13 +29,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T: PartialOrd + Clone> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T: PartialOrd + Clone> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,14 +69,46 @@ impl<T> LinkedList<T> {
             },
         }
     }
+
+    // SAFETY: The `ptr` must contain a Node<T>.
+    unsafe fn get_val(ptr: *mut Node<T>) -> T {
+        (*ptr).val.clone()
+    }
+    // SAFETY: The `ptr` must contain a Node<T>.
+    unsafe fn get_next(ptr: *mut Node<T>) -> Option<NonNull<Node<T>>> {
+        (*ptr).next
+    }
+
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+		let mut merged = Self::new();
+        let mut a = list_a.start;
+        let mut b = list_b.start;
+        while a.is_some() || b.is_some() {
+            if a.is_none() {
+                // SAFETY: b is_some.
+                let val = unsafe{b.unwrap().as_ref().val.clone()};
+                merged.add(val);
+                b = unsafe{b.unwrap().as_ref().next};
+                continue;
+            }
+            if b.is_none() {
+                let val = unsafe{a.unwrap().as_ref().val.clone()};
+                merged.add(val);
+                a = unsafe{a.unwrap().as_ref().next};
+                continue;
+            }
+            let val_a = unsafe{a.unwrap().as_ref().val.clone()};
+            let val_b = unsafe{b.unwrap().as_ref().val.clone()};
+            if val_a <= val_b {
+                merged.add(val_a);
+                a = unsafe{a.unwrap().as_ref().next};
+            } else {
+                merged.add(val_b);
+                b = unsafe{b.unwrap().as_ref().next};
+            }
         }
+        merged
 	}
 }
 

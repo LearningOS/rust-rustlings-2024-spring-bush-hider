@@ -2,7 +2,7 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
+
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -36,8 +36,44 @@ where
         self.len() == 0
     }
 
+    // https://zhuanlan.zhihu.com/p/187618450, swim and sink to impl a binary heap
     pub fn add(&mut self, value: T) {
-        //TODO
+        // insert on the tail
+        self.items.push(value);
+        self.count += 1;
+
+        // swim from the tail
+        let mut i = self.count;
+        while i > 1 && // DeBug: not 0
+            (self.comparator)(&self.items[i], &self.items[self.parent_idx(i)]){
+            let parent_i = self.parent_idx(i);
+            self.items.swap(i, parent_i);
+            i = parent_i;
+        }
+    }
+
+    pub fn delete(&mut self, idx: usize) -> Option<T> {
+        // swap with the tail and remove it
+        if self.count == 0 {
+            return None;
+        }
+        let deleted_item = Some(self.items.swap_remove(idx));
+        self.count -= 1;
+
+        // sink from the head
+        if self.count == 0 {
+            return deleted_item;
+        }
+        let mut i = 1;
+        while self.children_present(i){
+            let small_child_i = self.smallest_child_idx(i);
+            if !(self.comparator)(&self.items[i], &self.items[small_child_i]){
+                self.items.swap(i, small_child_i);
+            }
+            i = small_child_i;
+        }
+        
+        deleted_item
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -56,10 +92,20 @@ where
         self.left_child_idx(idx) + 1
     }
 
+    
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let l_idx = self.left_child_idx(idx);
+        let r_idx = self.right_child_idx(idx);
+        if r_idx > self.count { // only have left_child
+            l_idx
+        } else if (self.comparator)
+                        (&self.items[l_idx], &self.items[r_idx]){
+            l_idx
+        } else {
+            r_idx
+        }
     }
+    
 }
 
 impl<T> Heap<T>
@@ -84,8 +130,8 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        // delete the first item of items (consume it)
+		self.delete(1)
     }
 }
 

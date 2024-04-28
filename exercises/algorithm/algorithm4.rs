@@ -3,7 +3,7 @@
 	This problem requires you to implement a basic interface for a binary tree
 */
 
-//I AM NOT DONE
+
 use std::cmp::Ordering;
 use std::fmt::Debug;
 
@@ -50,13 +50,32 @@ where
 
     // Insert a value into the BST
     fn insert(&mut self, value: T) {
-        //TODO
+        if self.root.is_some() {
+            (*self.root.as_mut().unwrap()).insert(value);
+        } else {
+            self.root.replace(
+                Box::new(TreeNode{
+                    value,
+                    left: None,
+                    right: None,
+                })
+            );
+        }
     }
 
     // Search for a value in the BST
     fn search(&self, value: T) -> bool {
-        //TODO
-        true
+        let mut current = &self.root;
+        while current.is_some() {
+            // can use while let Some(ref curr_) = current {…}
+            let curr_ = current.as_ref().unwrap();
+            current = match curr_.value.cmp(&value) {
+                Ordering::Equal => return true,
+                Ordering::Less => &curr_.left,
+                Ordering::Greater => &curr_.right,
+            }
+        }
+        false
     }
 }
 
@@ -66,7 +85,31 @@ where
 {
     // Insert a node into the tree
     fn insert(&mut self, value: T) {
-        //TODO
+        match self.value.cmp(&value) {
+            Ordering::Less => match self.left.as_mut() {
+                Some(ref mut i) => i.insert(value),
+                None => {
+                    self.left.replace(
+                        Box::new( Self {
+                            value,
+                            left: None,
+                            right: None,
+                        }));
+                },
+            },
+            Ordering::Greater => match self.right.as_mut() {
+                Some(ref mut i) => i.insert(value),
+                None => {
+                    self.right.replace(
+                        Box::new( Self {
+                            value,
+                            left: None,
+                            right: None,
+                        }));
+                },
+            },
+            _ => {},
+        };
     }
 }
 
